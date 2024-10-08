@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundación Anger K'A</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="menu-principal">
+        <div class="contenido-central">
+            <h1>Bienvenido a la fundación Anger K'A</h1>
+            <h2>¿Quieres reservar una cita?</h2>
+            <a href="{% url 'interfaz_paciente' %}" class="btn-reserva">¡Reserva tu cita!</a>
+        </div>
+        <a href="{% url 'interfaz_psicologo' %}" class="btn-psicologo">Soy psicólogo</a>
+    </div>
+</body>
+</html>
