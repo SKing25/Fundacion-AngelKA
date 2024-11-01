@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calendario de Citas</title>
+</head>
+<body>
+    <h1>Calendario de Citas</h1>
+    <ul>
+        {% for cita in citas %}
+            <li>{{ cita.fecha }} {{ cita.hora }} - Psicólogo: {{ cita.psicologo.nombre }} - Paciente: {{ cita.paciente }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'descargar_calendario_excel' %}">Descargar Calendario en Excel</a>
+    <a href="{% url 'vista_superusuario' %}">Volver</a>
+</body>
+</html>

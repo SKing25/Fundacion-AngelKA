@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vista Superusuario</title>
+</head>
+<body>
+    <h1>Interfaz de Superusuario</h1>
+    <h2>Psicólogos</h2>
+    <ul>
+        {% for psicologo in psicologos %}
+            <li>{{ psicologo.nombre }} - {{ psicologo.correo }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'calendario_citas' %}">Ver Calendario de Citas</a>
+    <a href="{% url 'descargar_calendario_excel' %}">Descargar Calendario en Excel</a>
+    <a href="{% url 'menu_principal' %}">Volver</a>
+</body>
+</html>

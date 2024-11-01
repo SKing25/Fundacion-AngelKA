@@ -4,21 +4,29 @@
     <title>Interfaz Psicólogo</title>
 </head>
 <body>
-    <h1>Seleccione su psicólogo:</h1>
-    <form method="get">
-        <select name="psicologo" id="psicologo">
-            {% for psicologo in psicologos %}
-                <option value="{{ psicologo.id }}" {% if psicologo_seleccionado and psicologo.id == psicologo_seleccionado.id %}selected{% endif %}>{{ psicologo.nombre }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit">Cargar Citas</button>
-    </form>
-    <h2>Citas:</h2>
-    <ul>
-        {% for cita in citas %}
-            <li>{{ cita.fecha }} {{ cita.hora }}: {{ cita.paciente }}</li>
-        {% endfor %}
-    </ul>
+    <h1>¡Bienvenido, {{ user.nombre }}!</h1>
+    <section id="info-psicologo">
+        <h2>Información del Psicólogo</h2>
+        <p>Nombre: {{ user.nombre }}</p>
+        <p>Correo: {{ user.correo }}</p>
+    </section>
+    <section id="calendario-citas">
+        <h2>Calendario de Citas</h2>
+        <form method="post">
+            {% csrf_token %}
+            <ul>
+                {% for cita in citas %}
+                    <li>
+                        {{ cita.fecha }} {{ cita.hora }}: {{ cita.paciente }}
+                        <input type="checkbox" name="cita_id" value="{{ cita.id }}" onchange="this.form.submit()">
+                        <label>Completa</label>
+                    </li>
+                {% endfor %}
+            </ul>
+        </form>
+    </section>
+    <a href="{% url 'descargar_citas_pdf' %}">Descargar Citas Pendientes en PDF</a>
     <a href="{% url 'menu_principal' %}">Volver</a>
+    <a href="{% url 'vista_logout' %}">Cerrar Sesión</a>
 </body>
 </html>
