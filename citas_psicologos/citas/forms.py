@@ -1,14 +1,10 @@
 from django import forms
-from .models import Psicologo
-from .models import Cita
+from .models import Psicologo, Cita
 
-
-# Formulario de inicio de sesión
 class FormularioLogin(forms.Form):
     correo = forms.EmailField(label='Correo Electrónico', max_length=100)
     contraseña = forms.CharField(label='Contraseña', widget=forms.PasswordInput)
 
-# Formulario de registro
 class FormularioRegistro(forms.ModelForm):
     class Meta:
         model = Psicologo
@@ -35,6 +31,5 @@ class CitaForm(forms.ModelForm):
         model = Cita
         fields = ['fecha', 'hora', 'paciente']
 
-    # Opciones de horas cerradas (x:00, y:00)
     HORA_CHOICES = [(f"{h:02}:00", f"{h:02}:00") for h in range(0, 24)]
     hora = forms.ChoiceField(choices=HORA_CHOICES)

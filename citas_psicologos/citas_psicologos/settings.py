@@ -1,6 +1,3 @@
-# Este archivo contiene todas las configuraciones del proyecto, 
-# incluyendo las aplicaciones instaladas, las bases de datos, y los ajustes de internacionalización.
-
 """
 Django settings for citas_psicologos project.
 
@@ -53,7 +50,7 @@ MIDDLEWARE = [
     'django_session_timeout.middleware.SessionTimeoutMiddleware'
 ]
 
-SESSION_EXPIRE_SECONDS = 60
+SESSION_EXPIRE_SECONDS = 900
 SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True 
 SESSION_TIMEOUT_REDIRECT = 'vista_login'
 
@@ -62,7 +59,7 @@ ROOT_URLCONF = 'citas_psicologos.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'citas' / 'templates'],  # Agregar este directorio
+        'DIRS': [BASE_DIR / 'citas' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

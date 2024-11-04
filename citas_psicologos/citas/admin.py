@@ -1,8 +1,6 @@
-# admin.py
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, reverse
 from django.http import HttpResponseRedirect
-from django.urls import reverse
 from .models import Psicologo, Cita
 
 @admin.register(Psicologo)

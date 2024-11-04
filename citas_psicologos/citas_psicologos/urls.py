@@ -1,5 +1,3 @@
-# Este archivo define las rutas URL para todo tu proyecto y enlaza con las rutas de la aplicación citas.
-
 """
 URL configuration for citas_psicologos project.
 
@@ -23,8 +21,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
-# Definición de rutas URL para el proyecto principal
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('citas.urls')),  # Incluye las rutas de la aplicación 'citas'
+    path('', include('citas.urls')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
