@@ -1,24 +1,41 @@
+# El archivo forms.py en una aplicación de Django se utiliza para definir formularios que se basan en modelos de la aplicación 
+# o que son independientes de los modelos. Estos formularios se utilizan para gestionar 
+# la entrada de datos del usuario de manera estructurada y segura.
+
 from django import forms
 from .models import Psicologo, Cita
 
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+# Definir un formulario de inicio de sesión
 class FormularioLogin(forms.Form):
+    # Campo de correo electrónico con un máximo de 100 caracteres
     correo = forms.EmailField(label='Correo Electrónico', max_length=100)
+    # Campo de contraseña que se renderiza como un campo de entrada de tipo contraseña
     contraseña = forms.CharField(label='Contraseña', widget=forms.PasswordInput)
 
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+# Definir un formulario de registro basado en el modelo Psicologo
 class FormularioRegistro(forms.ModelForm):
+    # Meta clase para especificar el modelo y los campos incluidos en el formulario
     class Meta:
         model = Psicologo
         fields = ['nombre', 'correo', 'contraseña']
 
+    # Campo de contraseña renderizado como campo de entrada de tipo contraseña
     contraseña = forms.CharField(widget=forms.PasswordInput)
+    # Campo adicional para confirmar la contraseña
     confirmar_contraseña = forms.CharField(widget=forms.PasswordInput, label="Confirmar Contraseña")
 
+    # Método para validar que ambas contraseñas coinciden
     def clean_confirmar_contraseña(self):
         cd = self.cleaned_data
         if cd['contraseña'] != cd['confirmar_contraseña']:
             raise forms.ValidationError("Las contraseñas no coinciden.")
         return cd['confirmar_contraseña']
 
+    # Método para guardar el usuario con la contraseña encriptada
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["contraseña"])
@@ -26,10 +43,17 @@ class FormularioRegistro(forms.ModelForm):
             user.save()
         return user
 
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+# Definir un formulario para las citas basado en el modelo Cita
 class CitaForm(forms.ModelForm):
+    # Meta clase para especificar el modelo y los campos incluidos en el formulario
     class Meta:
         model = Cita
         fields = ['fecha', 'hora', 'paciente']
 
+    # Definir opciones de horas cerradas para el campo hora
     HORA_CHOICES = [(f"{h:02}:00", f"{h:02}:00") for h in range(0, 24)]
     hora = forms.ChoiceField(choices=HORA_CHOICES)
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------

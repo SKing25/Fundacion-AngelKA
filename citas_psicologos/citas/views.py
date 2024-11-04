@@ -1,3 +1,7 @@
+# El archivo views.py define las funciones de vista para la aplicación Django. 
+# Cada función de vista se encarga de recibir una solicitud HTTP, procesar los datos necesarios y devolver una respuesta HTTP adecuada. 
+# Este archivo es fundamental para el funcionamiento de la lógica de negocio de la aplicación.
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -9,13 +13,13 @@ from django.contrib.admin.views.decorators import staff_member_required
 from .models import Psicologo, Cita
 from .forms import FormularioLogin, FormularioRegistro
 
-import csv
 import random
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para descargar todas las citas en PDF, solo accesible para administradores
 @staff_member_required
 def descargar_todas_citas_pdf(request):
     response = HttpResponse(content_type='application/pdf')
@@ -42,6 +46,7 @@ def descargar_todas_citas_pdf(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para descargar las citas pendientes en PDF, accesible para psicólogos autenticados
 @login_required(login_url='vista_login')
 def descargar_citas_pdf(request):
     response = HttpResponse(content_type='application/pdf')
@@ -65,6 +70,7 @@ def descargar_citas_pdf(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para mostrar la interfaz del psicólogo con sus citas pendientes
 @login_required(login_url='vista_login')
 def mostrar_interfaz_psicologo(request):
     citas = Cita.objects.filter(psicologo=request.user)
@@ -82,11 +88,13 @@ def mostrar_interfaz_psicologo(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para mostrar el menú principal
 def mostrar_menu_principal(request):
     return render(request, 'menu_principal.html')
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para manejar el inicio de sesión de usuarios
 def vista_login(request):
     mensaje_error = None
     if request.method == 'POST':
@@ -109,6 +117,7 @@ def vista_login(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para manejar el registro de nuevos usuarios
 def registro_view(request):
     if request.method == 'POST':
         formulario = FormularioRegistro(request.POST)
@@ -121,6 +130,7 @@ def registro_view(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para mostrar la interfaz del paciente y asignar citas a psicólogos disponibles
 def mostrar_interfaz_paciente(request):
     psicologos = Psicologo.objects.filter(es_psicologo=True)
     mensaje_error = None
@@ -142,6 +152,7 @@ def mostrar_interfaz_paciente(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para la interfaz del superusuario que muestra todos los psicólogos
 def vista_superusuario(request):
     if not request.user.is_authenticated or not request.user.is_superuser:
         return redirect('vista_login')
@@ -150,6 +161,7 @@ def vista_superusuario(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para mostrar el calendario de todas las citas, accesible solo para superusuarios
 def calendario_citas(request):
     if not request.user.is_authenticated or not request.user.is_superuser:
         return redirect('vista_login')
@@ -158,29 +170,14 @@ def calendario_citas(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
-def descargar_calendario_excel(request):
-    if not request.user.is_authenticated or not request.user.is_superuser:
-        return redirect('vista_login')
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="calendario_citas.csv"'
-
-    writer = csv.writer(response)
-    writer.writerow(['Fecha', 'Hora', 'Psicologo', 'Paciente'])
-
-    citas = Cita.objects.all().order_by('fecha', 'hora', 'psicologo__nombre')
-    for cita in citas:
-        writer.writerow([cita.fecha, cita.hora, cita.psicologo.nombre, cita.paciente])
-
-    return response
-
-#-----------------------------------------------------------------------------------------------------------------------------------------------
-
+# Vista para cerrar la sesión del usuario
 def vista_logout(request):
     logout(request)
     return redirect('menu_principal')
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para redirigir a la interfaz del psicólogo si el usuario está autenticado como psicólogo
 def soy_psicologo(request):
     if request.user.is_authenticated:
         return redirect('interfaz_psicologo')
@@ -189,6 +186,7 @@ def soy_psicologo(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
+# Vista para restablecer la contraseña de un usuario específico
 def restablecer_contraseña(request, user_id):
     if request.method == 'POST':
         nueva_contraseña = request.POST.get('nueva_contraseña')
