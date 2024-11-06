@@ -1,51 +1,33 @@
+<!-- interfaz_paciente.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Interfaz Paciente</title>
+    <title>Agendar Cita</title>
 </head>
 <body>
-    <h1>Apartar Cita con Psicólogo</h1>
+    <h1>Agendar Cita</h1>
     {% if mensaje_error %}
         <p style="color: red;">{{ mensaje_error }}</p>
     {% endif %}
     <form method="post">
         {% csrf_token %}
         <label for="fecha">Fecha:</label>
-        <input type="date" name="fecha" id="fecha" required>
-        <br>
+        <input type="date" id="fecha" name="fecha" required><br>
+
         <label for="hora">Hora:</label>
-        <select name="hora" id="hora">
-            <option value="00:00">00:00</option>
-            <option value="01:00">01:00</option>
-            <option value="02:00">02:00</option>
-            <option value="03:00">03:00</option>
-            <option value="04:00">04:00</option>
-            <option value="05:00">05:00</option>
-            <option value="06:00">06:00</option>
-            <option value="07:00">07:00</option>
-            <option value="08:00">08:00</option>
-            <option value="09:00">09:00</option>
-            <option value="10:00">10:00</option>
-            <option value="11:00">11:00</option>
-            <option value="12:00">12:00</option>
-            <option value="13:00">13:00</option>
-            <option value="14:00">14:00</option>
-            <option value="15:00">15:00</option>
-            <option value="16:00">16:00</option>
-            <option value="17:00">17:00</option>
-            <option value="18:00">18:00</option>
-            <option value="19:00">19:00</option>
-            <option value="20:00">20:00</option>
-            <option value="21:00">21:00</option>
-            <option value="22:00">22:00</option>
-            <option value="23:00">23:00</option>
-        </select>
-        <br>
+        <input type="time" id="hora" name="hora" required><br>
+
         <label for="paciente">Nombre del Paciente:</label>
-        <input type="text" name="paciente" id="paciente" required>
-        <br>
-        <button type="submit">Apartar Cita</button>
+        <input type="text" id="paciente" name="paciente" required><br>
+
+        <label for="psicologo">Elige un Psicólogo:</label>
+        <select id="psicologo" name="psicologo">
+            {% for psicologo in psicologos %}
+                <option value="{{ psicologo.id }}">{{ psicologo.nombre }}</option>
+            {% endfor %}
+        </select><br>
+
+        <button type="submit">Agendar Cita</button>
     </form>
-    <a href="{% url 'menu_principal' %}">Volver</a>
 </body>
 </html>
