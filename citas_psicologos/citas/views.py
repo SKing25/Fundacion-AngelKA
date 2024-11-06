@@ -138,17 +138,16 @@ def mostrar_interfaz_paciente(request):
         fecha = request.POST.get('fecha')
         hora = request.POST.get('hora')
         paciente = request.POST.get('paciente')
+        psicologo_id = request.POST.get('psicologo')
 
-        psicologos_disponibles = [psicologo for psicologo in psicologos if not Cita.objects.filter(psicologo=psicologo, fecha=fecha, hora=hora).exists()]
-        
-        if psicologos_disponibles:
-            psicologo_asignado = random.choice(psicologos_disponibles)
+        if not Cita.objects.filter(psicologo_id=psicologo_id, fecha=fecha, hora=hora).exists():
+            psicologo_asignado = Psicologo.objects.get(id=psicologo_id)
             Cita.objects.create(psicologo=psicologo_asignado, fecha=fecha, hora=hora, paciente=paciente)
             return redirect('interfaz_paciente')
         else:
-            mensaje_error = "No hay psicólogos disponibles para la fecha y hora seleccionadas."
+            mensaje_error = "El psicólogo seleccionado no está disponible para la fecha y hora seleccionadas."
 
-    return render(request, 'interfaz_paciente.html', {'mensaje_error': mensaje_error})
+    return render(request, 'interfaz_paciente.html', {'psicologos': psicologos, 'mensaje_error': mensaje_error})
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
