@@ -9,13 +9,31 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse
 from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render, redirect, get_object_or_404
 
 from .models import Psicologo, Cita
-from .forms import FormularioLogin, FormularioRegistro
+from .forms import FormularioLogin, PsicologoForm
 
 import random
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+# Función para dividir el texto en líneas que se ajusten al ancho de la página
+def dividir_texto_en_lineas(texto, max_width, font_size, canvas):
+    palabras = texto.split(' ')
+    lineas = []
+    linea_actual = ''
+    for palabra in palabras:
+        if canvas.stringWidth(linea_actual + ' ' + palabra, "Helvetica", font_size) < max_width:
+            linea_actual += ' ' + palabra if linea_actual else palabra
+        else:
+            lineas.append(linea_actual)
+            linea_actual = palabra
+    if linea_actual:
+        lineas.append(linea_actual)
+    return lineas
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -27,18 +45,26 @@ def descargar_todas_citas_pdf(request):
 
     p = canvas.Canvas(response, pagesize=letter)
     width, height = letter
+    margin = 40
+    max_width = width - 2 * margin
+    y_position = height - margin
 
-    p.drawString(100, height - 50, "Todas las Citas de Psicólogos")
+    p.setFont("Helvetica", 12)
+    p.drawString(margin, y_position, "Todas las Citas de Psicólogos")
+    y_position -= 20
 
     citas = Cita.objects.all()
 
-    y = height - 100
     for cita in citas:
-        p.drawString(100, y, f"Psicólogo: {cita.psicologo.nombre} - Fecha: {cita.fecha} - Hora: {cita.hora} - Paciente: {cita.paciente}")
-        y -= 20
-        if y < 50:
-            p.showPage()
-            y = height - 50
+        texto = f"Psicólogo: {cita.psicologo.nombre} - Fecha: {cita.fecha} - Hora: {cita.hora} - Paciente: {cita.paciente} - Contacto: {cita.contacto}"
+        lineas = dividir_texto_en_lineas(texto, max_width, 12, p)
+        for linea in lineas:
+            if y_position < margin:
+                p.showPage()
+                y_position = height - margin
+                p.setFont("Helvetica", 12)
+            p.drawString(margin, y_position, linea)
+            y_position -= 15
 
     p.showPage()
     p.save()
@@ -54,15 +80,26 @@ def descargar_citas_pdf(request):
 
     p = canvas.Canvas(response, pagesize=letter)
     width, height = letter
+    margin = 40
+    max_width = width - 2 * margin
+    y_position = height - margin
 
-    p.drawString(100, height - 50, f"Citas Pendientes de {request.user.nombre}")
+    p.setFont("Helvetica", 12)
+    p.drawString(margin, y_position, f"Citas Pendientes de {request.user.nombre}")
+    y_position -= 20
 
     citas = Cita.objects.filter(psicologo=request.user)
 
-    y = height - 100
     for cita in citas:
-        p.drawString(100, y, f"Fecha: {cita.fecha} - Hora: {cita.hora} - Paciente: {cita.paciente}")
-        y -= 20
+        texto = f"Fecha: {cita.fecha} - Hora: {cita.hora} - Paciente: {cita.paciente} - Contacto: {cita.contacto}"
+        lineas = dividir_texto_en_lineas(texto, max_width, 12, p)
+        for linea in lineas:
+            if y_position < margin:
+                p.showPage()
+                y_position = height - margin
+                p.setFont("Helvetica", 12)
+            p.drawString(margin, y_position, linea)
+            y_position -= 15
 
     p.showPage()
     p.save()
@@ -73,18 +110,23 @@ def descargar_citas_pdf(request):
 # Vista para mostrar la interfaz del psicólogo con sus citas pendientes
 @login_required(login_url='vista_login')
 def mostrar_interfaz_psicologo(request):
-    citas = Cita.objects.filter(psicologo=request.user)
+    psicologo = request.user
+    citas_pendientes = Cita.objects.filter(psicologo=psicologo, completa=False)
+    citas_completadas = Cita.objects.filter(psicologo=psicologo, completa=True)
+
     if request.method == 'POST':
-        cita_id = request.POST.get('cita_id')
-        cita = Cita.objects.get(id=cita_id)
-        cita.delete()
+        enlace_reunion = request.POST.get('enlace_reunion')
+        direccion_presencial = request.POST.get('direccion_presencial')
+        psicologo.enlace_reunion = enlace_reunion
+        psicologo.direccion_presencial = direccion_presencial
+        psicologo.save()
         return redirect('interfaz_psicologo')
 
-    context = {
-        'user': request.user,
-        'citas': citas,
-    }
-    return render(request, 'interfaz_psicologo.html', context)
+    return render(request, 'interfaz_psicologo.html', {
+        'psicologo': psicologo,
+        'citas_pendientes': citas_pendientes,
+        'citas_completadas': citas_completadas
+    })
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -102,13 +144,15 @@ def vista_login(request):
         if formulario.is_valid():
             correo = formulario.cleaned_data['correo']
             contraseña = formulario.cleaned_data['contraseña']
-            usuario = authenticate(request, correo=correo, password=contraseña)
+            usuario = authenticate(request, username=correo, password=contraseña)
             if usuario is not None:
                 login(request, usuario)
                 if usuario.is_superuser:
                     return redirect('vista_superusuario')
-                else:
+                elif usuario.es_psicologo:
                     return redirect('interfaz_psicologo')
+                else:
+                    return redirect('interfaz_paciente')
             else:
                 mensaje_error = "Correo o contraseña incorrectos."
     else:
@@ -117,55 +161,46 @@ def vista_login(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
-# Vista para manejar el registro de nuevos usuarios
-def registro_view(request):
-    if request.method == 'POST':
-        formulario = FormularioRegistro(request.POST)
-        if formulario.is_valid():
-            formulario.save()
-            return redirect('vista_login')
-    else:
-        formulario = FormularioRegistro()
-    return render(request, 'registro.html', {'formulario': formulario})
-
-#-----------------------------------------------------------------------------------------------------------------------------------------------
-
 # Vista para mostrar la interfaz del paciente y asignar citas a psicólogos disponibles
 def mostrar_interfaz_paciente(request):
     psicologos = Psicologo.objects.filter(es_psicologo=True)
     mensaje_error = None
+    horas_disponibles = []
+    fecha_seleccionada = None
+    psicologo_seleccionado = None
+
     if request.method == 'POST':
         fecha = request.POST.get('fecha')
         hora = request.POST.get('hora')
         paciente = request.POST.get('paciente')
+        contacto = request.POST.get('contacto')
+        modalidad = request.POST.get('modalidad')
         psicologo_id = request.POST.get('psicologo')
 
         if not Cita.objects.filter(psicologo_id=psicologo_id, fecha=fecha, hora=hora).exists():
             psicologo_asignado = Psicologo.objects.get(id=psicologo_id)
-            Cita.objects.create(psicologo=psicologo_asignado, fecha=fecha, hora=hora, paciente=paciente)
+            Cita.objects.create(psicologo=psicologo_asignado, fecha=fecha, hora=hora, paciente=paciente, contacto=contacto, modalidad=modalidad)
             return redirect('interfaz_paciente')
         else:
             mensaje_error = "El psicólogo seleccionado no está disponible para la fecha y hora seleccionadas."
 
-    return render(request, 'interfaz_paciente.html', {'psicologos': psicologos, 'mensaje_error': mensaje_error})
+    if request.method == 'GET':
+        psicologo_id = request.GET.get('psicologo')
+        fecha = request.GET.get('fecha')
+        if psicologo_id and fecha:
+            horas_disponibles = get_horas_disponibles(psicologo_id, fecha)
+            fecha_seleccionada = fecha
+            psicologo_seleccionado = psicologo_id
+        elif psicologo_id:
+            psicologo_seleccionado = psicologo_id
 
-#-----------------------------------------------------------------------------------------------------------------------------------------------
-
-# Vista para la interfaz del superusuario que muestra todos los psicólogos
-def vista_superusuario(request):
-    if not request.user.is_authenticated or not request.user.is_superuser:
-        return redirect('vista_login')
-    psicologos = Psicologo.objects.all()
-    return render(request, 'vista_superusuario.html', {'psicologos': psicologos})
-
-#-----------------------------------------------------------------------------------------------------------------------------------------------
-
-# Vista para mostrar el calendario de todas las citas, accesible solo para superusuarios
-def calendario_citas(request):
-    if not request.user.is_authenticated or not request.user.is_superuser:
-        return redirect('vista_login')
-    citas = Cita.objects.all().order_by('fecha', 'hora', 'psicologo__nombre')
-    return render(request, 'calendario_citas.html', {'citas': citas})
+    return render(request, 'interfaz_paciente.html', {
+        'psicologos': psicologos,
+        'horas_disponibles': horas_disponibles,
+        'mensaje_error': mensaje_error,
+        'fecha_seleccionada': fecha_seleccionada,
+        'psicologo_seleccionado': psicologo_seleccionado
+    })
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -185,14 +220,85 @@ def soy_psicologo(request):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
-# Vista para restablecer la contraseña de un usuario específico
-def restablecer_contraseña(request, user_id):
-    if request.method == 'POST':
-        nueva_contraseña = request.POST.get('nueva_contraseña')
-        usuario = User.objects.get(id=user_id)
-        usuario.password = make_password(nueva_contraseña)
-        usuario.save()
-        return redirect('admin:index')
-    return render(request, 'restablecer_contraseña.html', {'user_id': user_id})
+def get_horas_disponibles(psicologo_id, fecha):
+    horas_totales = [f"{h:02}:00" for h in range(9, 18)]  # Horas de 9:00 a 17:00
+    citas = Cita.objects.filter(psicologo_id=psicologo_id, fecha=fecha).values_list('hora', flat=True)
+    horas_ocupadas = [hora.strftime('%H:%M') for hora in citas]
+    horas_disponibles = [hora for hora in horas_totales if hora not in horas_ocupadas]
+    return horas_disponibles
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
+
+@login_required(login_url='vista_login')
+def marcar_cita_completa(request, cita_id):
+    try:
+        cita = Cita.objects.get(id=cita_id)
+        if cita.psicologo == request.user:
+            cita.completa = True
+            cita.save()
+    except Cita.DoesNotExist:
+        pass
+    return redirect('interfaz_psicologo')
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+def consultar_cita(request):
+    mensaje_error = None
+    citas = []
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        contacto = request.POST.get('contacto')
+        citas = Cita.objects.filter(paciente=nombre, contacto=contacto, completa=False)
+        if not citas:
+            mensaje_error = "No se encontró ninguna cita con los datos proporcionados."
+    return render(request, 'consultar_cita.html', {'mensaje_error': mensaje_error, 'citas': citas})
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+def modificar_cita(request, cita_id):
+    cita = get_object_or_404(Cita, id=cita_id)
+    psicologos = Psicologo.objects.filter(es_psicologo=True)
+    horas_disponibles = []
+
+    if request.method == 'POST':
+        cita.psicologo_id = request.POST.get('psicologo')
+        cita.fecha = request.POST.get('fecha')
+        cita.hora = request.POST.get('hora')
+        cita.modalidad = request.POST.get('modalidad')
+        cita.save()
+        return redirect('consultar_cita')
+
+    psicologo_id = request.GET.get('psicologo', cita.psicologo_id)
+    fecha = request.GET.get('fecha', cita.fecha)
+    if psicologo_id and fecha:
+        horas_disponibles = get_horas_disponibles(psicologo_id, fecha)
+
+    return render(request, 'modificar_cita.html', {
+        'cita': cita,
+        'psicologos': psicologos,
+        'horas_disponibles': horas_disponibles,
+        'fecha_seleccionada': fecha
+    })
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+def eliminar_cita(request, cita_id):
+    cita = get_object_or_404(Cita, id=cita_id)
+    if request.method == 'POST':
+        cita.delete()
+        return redirect('consultar_cita')
+    return redirect('modificar_cita', cita_id=cita_id)
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+@login_required
+def editar_perfil_psicologo(request):
+    if request.method == 'POST':
+        form = PsicologoForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('interfaz_psicologo')
+    else:
+        form = PsicologoForm(instance=request.user)
+    return render(request, 'editar_perfil_psicologo.html', {'form': form})
+

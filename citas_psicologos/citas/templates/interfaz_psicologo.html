@@ -4,29 +4,60 @@
     <title>Interfaz Psicólogo</title>
 </head>
 <body>
-    <h1>¡Bienvenido, {{ user.nombre }}!</h1>
+    <h1>¡Bienvenido, {{ psicologo.nombre }}!</h1>
     <section id="info-psicologo">
         <h2>Información del Psicólogo</h2>
-        <p>Nombre: {{ user.nombre }}</p>
-        <p>Correo: {{ user.correo }}</p>
+        <p>Nombre: {{ psicologo.nombre }}</p>
+        <p>Correo: {{ psicologo.correo }}</p>
     </section>
-    <section id="calendario-citas">
-        <h2>Calendario de Citas</h2>
-        <form method="post">
+
+    <section id="editar-contacto">
+        <h2>Editar Información de Contacto</h2>
+        <form method="post" action="{% url 'interfaz_psicologo' %}">
             {% csrf_token %}
-            <ul>
-                {% for cita in citas %}
-                    <li>
-                        {{ cita.fecha }} {{ cita.hora }}: {{ cita.paciente }}
-                        <input type="checkbox" name="cita_id" value="{{ cita.id }}" onchange="this.form.submit()">
-                        <label>Completa</label>
-                    </li>
-                {% endfor %}
-            </ul>
+            <label for="enlace_reunion">Enlace de Reunión:</label>
+            <input type="url" id="enlace_reunion" name="enlace_reunion" value="{{ psicologo.enlace_reunion }}"><br>
+
+            <label for="direccion_presencial">Dirección Presencial:</label>
+            <input type="text" id="direccion_presencial" name="direccion_presencial" value="{{ psicologo.direccion_presencial }}"><br>
+
+            <button type="submit">Guardar Cambios</button>
         </form>
     </section>
+    
+    <section id="calendario-citas">
+        <h2>Calendario de Citas Pendientes</h2>
+        <ul>
+            {% for cita in citas_pendientes %}
+                <li>
+                    {{ cita.fecha }} {{ cita.hora }}: {{ cita.paciente }} - {{ cita.contacto }}
+                    <input type="checkbox" name="cita_id" value="{{ cita.id }}" onchange="this.form.submit()" {% if cita.completa %}checked{% endif %}>
+                    <label>Completa</label>
+                    {% if cita.modalidad == "Virtual" %}
+                        <p><strong>Enlace de Reunión:</strong> <a href="{{ psicologo.enlace_reunion }}" target="_blank">{{ psicologo.enlace_reunion }}</a></p>
+                    {% else %}
+                        <p><strong>Dirección:</strong> {{ psicologo.direccion_presencial }}</p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="citas-completadas">
+        <h2>Citas Completadas</h2>
+        <ul>
+            {% for cita in citas_completadas %}
+                <li>
+                    {{ cita.fecha }} {{ cita.hora }}: {{ cita.paciente }} - {{ cita.contacto }}
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
     <a href="{% url 'descargar_citas_pdf' %}">Descargar Citas Pendientes en PDF</a>
     <a href="{% url 'menu_principal' %}">Volver</a>
     <a href="{% url 'vista_logout' %}">Cerrar Sesión</a>
 </body>
 </html>
+
+

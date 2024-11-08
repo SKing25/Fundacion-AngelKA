@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modificar Cita</title>
+    <script>
+        function actualizarHorasDisponibles() {
+            var psicologoId = document.getElementById('psicologo').value;
+            var fecha = document.getElementById('fecha').value;
+            window.location.href = window.location.pathname + "?psicologo=" + psicologoId + "&fecha=" + fecha;
+        }
+    </script>
+</head>
+<body>
+    <h1>Modificar Cita</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="nombre">Nombre del Paciente:</label>
+        <input type="text" id="nombre" name="nombre" value="{{ cita.paciente }}" readonly><br>
+
+        <label for="contacto">Contacto:</label>
+        <input type="text" id="contacto" name="contacto" value="{{ cita.contacto }}" readonly><br>
+
+        <label for="psicologo">Psicólogo:</label>
+        <select id="psicologo" name="psicologo" onchange="actualizarHorasDisponibles()" required>
+            {% for psicologo in psicologos %}
+                <option value="{{ psicologo.id }}" {% if psicologo.id == cita.psicologo.id %}selected{% endif %}>{{ psicologo.nombre }}</option>
+            {% endfor %}
+        </select><br>
+
+        <label for="fecha">Fecha:</label>
+        <input type="date" id="fecha" name="fecha" value="{{ fecha_seleccionada }}" onchange="actualizarHorasDisponibles()" required><br>
+
+        <label for="hora">Hora:</label>
+        <select id="hora" name="hora" required>
+            {% if horas_disponibles %}
+                {% for hora in horas_disponibles %}
+                    <option value="{{ hora }}" {% if hora == cita.hora %}selected{% endif %}>{{ hora }}</option>
+                {% endfor %}
+            {% else %}
+                <option value="{{ cita.hora }}" selected>{{ cita.hora }}</option>
+            {% endif %}
+        </select><br>
+
+        <label for="modalidad">Modalidad:</label>
+        <select id="modalidad" name="modalidad" required>
+            <option value="Presencial" {% if cita.modalidad == "Presencial" %}selected{% endif %}>Presencial</option>
+            <option value="Virtual" {% if cita.modalidad == "Virtual" %}selected{% endif %}>Virtual</option>
+        </select><br>
+
+        <button type="submit">Guardar Cambios</button>
+    </form>
+    <form method="post" action="{% url 'eliminar_cita' cita.id %}">
+        {% csrf_token %}
+        <button type="submit">Eliminar Cita</button>
+    </form>
+</body>
+</html>

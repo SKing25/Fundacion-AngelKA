@@ -24,10 +24,7 @@ SECRET_KEY = 'django-insecure-sj-@tvne7t43u&auf3&&i6k8vdehr^#&r2cjcb0$*xds6u#23e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 
-                 '127.0.0.1', 
-                 '192.168.1.11',
-                 '192.168.1.83']
+ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
@@ -130,3 +127,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Auth user model (if you're using a custom user model)
 AUTH_USER_MODEL = 'citas.Psicologo'
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
+

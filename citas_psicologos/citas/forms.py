@@ -9,10 +9,11 @@ from .models import Psicologo, Cita
 
 # Definir un formulario de inicio de sesión
 class FormularioLogin(forms.Form):
-    # Campo de correo electrónico con un máximo de 100 caracteres
-    correo = forms.EmailField(label='Correo Electrónico', max_length=100)
-    # Campo de contraseña que se renderiza como un campo de entrada de tipo contraseña
-    contraseña = forms.CharField(label='Contraseña', widget=forms.PasswordInput)
+    correo = forms.EmailField()
+    contraseña = forms.CharField(widget=forms.PasswordInput)
+
+    class Meta:
+        fields = ['correo', 'contraseña']
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -57,3 +58,8 @@ class CitaForm(forms.ModelForm):
     hora = forms.ChoiceField(choices=HORA_CHOICES)
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
+
+class PsicologoForm(forms.ModelForm):
+    class Meta:
+        model = Psicologo
+        fields = ['nombre', 'correo', 'enlace_reunion', 'direccion_presencial']
