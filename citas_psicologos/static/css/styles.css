@@ -52,7 +52,7 @@ body, html {
     padding: 10px 20px;
     font-size: 1em;
     color: white;
-    background-color: limegreen;
+    background-color: rgba(10,104, 133, 0.582);
     text-decoration: none;
     border-radius: 5px;
     margin-top: 10px;
@@ -66,5 +66,5 @@ body, html {
 }
 
 .btn-reserva:hover, .btn-psicologo:hover {
-    background-color: darkgreen;
+    background-color: rgb(85, 8, 187);
 }

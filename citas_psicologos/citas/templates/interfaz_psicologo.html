@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Interfaz Psicólogo</title>
+    {% load static %} 
+    <link rel="stylesheet" href="{% static 'css/psicologo_styles.css' %}"> 
 </head>
 <body>
     <h1>¡Bienvenido, {{ psicologo.nombre }}!</h1>
@@ -31,8 +33,11 @@
             {% for cita in citas_pendientes %}
                 <li>
                     {{ cita.fecha }} {{ cita.hora }}: {{ cita.paciente }} - {{ cita.contacto }}
-                    <input type="checkbox" name="cita_id" value="{{ cita.id }}" onchange="this.form.submit()" {% if cita.completa %}checked{% endif %}>
-                    <label>Completa</label>
+                    <form method="post" action="{% url 'marcar_cita_completa' cita.id %}">
+                        {% csrf_token %}
+                        <input type="checkbox" name="completa" value="true" onchange="this.form.submit()" {% if cita.completa %}checked{% endif %}>
+                        <label>Completa</label>
+                    </form>
                     {% if cita.modalidad == "Virtual" %}
                         <p><strong>Enlace de Reunión:</strong> <a href="{{ psicologo.enlace_reunion }}" target="_blank">{{ psicologo.enlace_reunion }}</a></p>
                     {% else %}
@@ -59,5 +64,3 @@
     <a href="{% url 'vista_logout' %}">Cerrar Sesión</a>
 </body>
 </html>
-
-

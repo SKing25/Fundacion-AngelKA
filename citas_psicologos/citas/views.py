@@ -3,18 +3,16 @@
 # Este archivo es fundamental para el funcionamiento de la lógica de negocio de la aplicación.
 
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect, get_object_or_404
 
 from .models import Psicologo, Cita
-from .forms import FormularioLogin, PsicologoForm
+from .forms import FormularioLogin, PsicologoForm, CitaForm
 
-import random
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
@@ -52,11 +50,11 @@ def descargar_todas_citas_pdf(request):
     p.setFont("Helvetica", 12)
     p.drawString(margin, y_position, "Todas las Citas de Psicólogos")
     y_position -= 20
-
-    citas = Cita.objects.all()
+    
+    citas = Cita.objects.filter(completa=False)
 
     for cita in citas:
-        texto = f"Psicólogo: {cita.psicologo.nombre} - Fecha: {cita.fecha} - Hora: {cita.hora} - Paciente: {cita.paciente} - Contacto: {cita.contacto}"
+        texto = f"Psicólogo: {cita.psicologo.nombre} - Fecha: {cita.fecha} - Hora: {cita.hora} - Paciente: {cita.paciente} - Contacto: {cita.contacto} - Modalidad: {cita.modalidad}"
         lineas = dividir_texto_en_lineas(texto, max_width, 12, p)
         for linea in lineas:
             if y_position < margin:
@@ -88,10 +86,11 @@ def descargar_citas_pdf(request):
     p.drawString(margin, y_position, f"Citas Pendientes de {request.user.nombre}")
     y_position -= 20
 
-    citas = Cita.objects.filter(psicologo=request.user)
+    # Ajuste aquí para filtrar solo las citas pendientes
+    citas = Cita.objects.filter(psicologo=request.user, completa=False)
 
     for cita in citas:
-        texto = f"Fecha: {cita.fecha} - Hora: {cita.hora} - Paciente: {cita.paciente} - Contacto: {cita.contacto}"
+        texto = f"Fecha: {cita.fecha} - Hora: {cita.hora} - Paciente: {cita.paciente} - Contacto: {cita.contacto} - Modalidad: {cita.modalidad}"
         lineas = dividir_texto_en_lineas(texto, max_width, 12, p)
         for linea in lineas:
             if y_position < margin:
@@ -170,19 +169,38 @@ def mostrar_interfaz_paciente(request):
     psicologo_seleccionado = None
 
     if request.method == 'POST':
-        fecha = request.POST.get('fecha')
-        hora = request.POST.get('hora')
-        paciente = request.POST.get('paciente')
-        contacto = request.POST.get('contacto')
-        modalidad = request.POST.get('modalidad')
-        psicologo_id = request.POST.get('psicologo')
+        form = CitaForm(request.POST)
+        if form.is_valid():
+            fecha = form.cleaned_data['fecha']
+            hora = form.cleaned_data['hora']
+            paciente = form.cleaned_data['paciente']
+            contacto = request.POST.get('contacto')
+            modalidad = request.POST.get('modalidad')
+            psicologo_id = request.POST.get('psicologo')
 
-        if not Cita.objects.filter(psicologo_id=psicologo_id, fecha=fecha, hora=hora).exists():
-            psicologo_asignado = Psicologo.objects.get(id=psicologo_id)
-            Cita.objects.create(psicologo=psicologo_asignado, fecha=fecha, hora=hora, paciente=paciente, contacto=contacto, modalidad=modalidad)
-            return redirect('interfaz_paciente')
+            try:
+                psicologo_asignado = Psicologo.objects.get(id=psicologo_id)
+            except Psicologo.DoesNotExist:
+                messages.error(request, f"El psicólogo seleccionado con ID {psicologo_id} no existe.")
+                return render(request, 'interfaz_paciente.html', {
+                    'form': form,
+                    'psicologos': psicologos,
+                    'horas_disponibles': horas_disponibles,
+                    'fecha_seleccionada': fecha,
+                    'psicologo_seleccionado': psicologo_id
+                })
+
+            if not Cita.objects.filter(psicologo=psicologo_asignado, fecha=fecha, hora=hora).exists():
+                Cita.objects.create(psicologo=psicologo_asignado, fecha=fecha, hora=hora, paciente=paciente, contacto=contacto, modalidad=modalidad)
+                messages.success(request, "Cita agendada con éxito.")
+                return redirect('interfaz_paciente')
+            else:
+                messages.error(request, "El psicólogo seleccionado no está disponible para la fecha y hora seleccionadas.")
         else:
-            mensaje_error = "El psicólogo seleccionado no está disponible para la fecha y hora seleccionadas."
+            messages.error(request, "Por favor, corrija los errores en el formulario.")
+
+    else:
+        form = CitaForm()
 
     if request.method == 'GET':
         psicologo_id = request.GET.get('psicologo')
@@ -195,9 +213,9 @@ def mostrar_interfaz_paciente(request):
             psicologo_seleccionado = psicologo_id
 
     return render(request, 'interfaz_paciente.html', {
+        'form': form,
         'psicologos': psicologos,
         'horas_disponibles': horas_disponibles,
-        'mensaje_error': mensaje_error,
         'fecha_seleccionada': fecha_seleccionada,
         'psicologo_seleccionado': psicologo_seleccionado
     })
@@ -231,13 +249,9 @@ def get_horas_disponibles(psicologo_id, fecha):
 
 @login_required(login_url='vista_login')
 def marcar_cita_completa(request, cita_id):
-    try:
-        cita = Cita.objects.get(id=cita_id)
-        if cita.psicologo == request.user:
-            cita.completa = True
-            cita.save()
-    except Cita.DoesNotExist:
-        pass
+    cita = get_object_or_404(Cita, id=cita_id)
+    cita.completa = True
+    cita.save()
     return redirect('interfaz_psicologo')
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
@@ -302,3 +316,4 @@ def editar_perfil_psicologo(request):
         form = PsicologoForm(instance=request.user)
     return render(request, 'editar_perfil_psicologo.html', {'form': form})
 
+#-----------------------------------------------------------------------------------------------------------------------------------------------

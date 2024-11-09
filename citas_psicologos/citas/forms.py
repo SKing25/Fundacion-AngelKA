@@ -46,14 +46,12 @@ class FormularioRegistro(forms.ModelForm):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
-# Definir un formulario para las citas basado en el modelo Cita
 class CitaForm(forms.ModelForm):
-    # Meta clase para especificar el modelo y los campos incluidos en el formulario
     class Meta:
         model = Cita
         fields = ['fecha', 'hora', 'paciente']
 
-    # Definir opciones de horas cerradas para el campo hora
+    fecha = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
     HORA_CHOICES = [(f"{h:02}:00", f"{h:02}:00") for h in range(0, 24)]
     hora = forms.ChoiceField(choices=HORA_CHOICES)
 
@@ -63,3 +61,5 @@ class PsicologoForm(forms.ModelForm):
     class Meta:
         model = Psicologo
         fields = ['nombre', 'correo', 'enlace_reunion', 'direccion_presencial']
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------

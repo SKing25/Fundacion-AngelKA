@@ -3,13 +3,11 @@
 # métodos y propiedades que definen el comportamiento y las relaciones entre los datos.
 
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, User
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth import get_user_model
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
-# Definir un manager personalizado para el modelo Psicologo
 class PsicologoManager(BaseUserManager):
     def create_user(self, correo, nombre, contraseña=None):
         if not correo:
@@ -29,7 +27,6 @@ class PsicologoManager(BaseUserManager):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
-# Definir el modelo Psicologo que hereda de AbstractBaseUser y PermissionsMixin para personalizar la autenticación
 class Psicologo(AbstractBaseUser, PermissionsMixin):
     nombre = models.CharField(max_length=100)
     correo = models.EmailField(unique=True)
@@ -56,12 +53,6 @@ class Psicologo(AbstractBaseUser, PermissionsMixin):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
-# Obtener el modelo de usuario actual de Django
-User = get_user_model()
-
-#-----------------------------------------------------------------------------------------------------------------------------------------------
-
-# Definir el modelo Cita para gestionar las citas
 class Cita(models.Model):
     psicologo = models.ForeignKey(Psicologo, on_delete=models.CASCADE)
     paciente = models.CharField(max_length=100)
@@ -70,11 +61,10 @@ class Cita(models.Model):
     hora = models.TimeField()
     modalidad = models.CharField(max_length=10, choices=[('Presencial', 'Presencial'), ('Virtual', 'Virtual')])
     completa = models.BooleanField(default=False)
-    enlace_reunion = models.URLField(blank=True, null=True)  # Nuevo campo para enlace de reunión virtual
-    direccion = models.CharField(max_length=255, blank=True, null=True)  # Nuevo campo para dirección presencial
+    enlace_reunion = models.URLField(blank=True, null=True)
+    direccion = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
-        unique_together = ('psicologo', 'fecha', 'hora')  # Asegurar que cada cita es única por psicólogo, fecha y hora
+        unique_together = ('psicologo', 'fecha', 'hora')
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
-
