@@ -9,21 +9,20 @@ from django.contrib.auth.hashers import make_password
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
 class PsicologoManager(BaseUserManager):
-    def create_user(self, correo, nombre, contraseña=None):
+    def create_user(self, correo, nombre, password=None, **extra_fields):
         if not correo:
             raise ValueError('El usuario debe tener un correo electrónico')
         correo = self.normalize_email(correo)
-        usuario = self.model(correo=correo, nombre=nombre)
-        usuario.set_password(contraseña)
+        usuario = self.model(correo=correo, nombre=nombre, **extra_fields)
+        usuario.set_password(password)
         usuario.save(using=self._db)
         return usuario
 
-    def create_superuser(self, correo, nombre, contraseña=None):
-        usuario = self.create_user(correo, nombre, contraseña)
-        usuario.is_superuser = True
-        usuario.is_staff = True
-        usuario.save(using=self._db)
-        return usuario
+    def create_superuser(self, correo, nombre, password=None, **extra_fields):
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_staff', True)
+        
+        return self.create_user(correo, nombre, password, **extra_fields)
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
