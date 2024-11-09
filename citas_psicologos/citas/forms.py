@@ -52,7 +52,7 @@ class CitaForm(forms.ModelForm):
         fields = ['fecha', 'hora', 'paciente']
 
     fecha = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
-    HORA_CHOICES = [(f"{h:02}:00", f"{h:02}:00") for h in range(0, 24)]
+    HORA_CHOICES = [(f"{h:02}:00", f"{h:02}:00") for h in range(8, 20)]
     hora = forms.ChoiceField(choices=HORA_CHOICES)
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
