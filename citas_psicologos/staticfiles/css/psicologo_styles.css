@@ -1,0 +1,134 @@
+/* Estilo general */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    color: #444;
+    text-align: center;
+}
+
+/* Cabecera */
+h1 {
+    text-align: center;
+    color: #0077cc;
+    margin-top: 40px;
+    font-size: 2.5em;
+    font-weight: 600;
+}
+
+/* Secciones */
+section {
+    background-color: #fff;
+    padding: 30px;
+    margin: 20px auto;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 900px;
+}
+
+/* Información del psicólogo */
+#info-psicologo h2 {
+    color: #0077cc;
+    font-size: 1.8em;
+    margin-bottom: 15px;
+}
+
+#info-psicologo p {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+/* Calendario de citas */
+#calendario-citas h2 {
+    color: #0077cc;
+    font-size: 1.8em;
+    margin-bottom: 20px;
+}
+
+#calendario-citas ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#calendario-citas li {
+    background-color: #f2f2f2;
+    border: 1px solid #ddd;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.2em;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+#calendario-citas li:hover {
+    background-color: #e6e6e6;
+}
+
+#calendario-citas li input {
+    margin-left: 10px;
+}
+
+
+/* Enlaces estilo botón */
+a {
+    text-decoration: none;
+    color: #fff; /* Cambiar el texto a blanco */
+    font-weight: bold;
+    font-size: 1.2em;
+    display: inline-block;
+    padding: 10px 20px; /* Espaciado dentro del botón */
+    margin: 15px 20px; /* Espacio entre botones */
+    border-radius: 8px; /* Bordes redondeados */
+    background-color: #0077cc; /* Color de fondo */
+    text-align: center;
+    transition: all 0.09s ease;
+    cursor: pointer; /* Cambia el cursor a mano para indicar interactividad */
+}
+
+/* Efecto hover */
+a:hover {
+    background-color: #005fa3; /* Fondo más oscuro al pasar el ratón */
+    transform: translateY(-2px); /* Efecto de elevar el botón al hacer hover */
+}
+
+/* Estilo de los enlaces cuando están inactivos */
+a:active {
+    background-color: #004080; /* Fondo aún más oscuro cuando se hace clic */
+    transform: translateY(0); /* El efecto de elevarse se desactiva al hacer clic */
+}
+
+/* Estilo cuando el enlace está en foco (para accesibilidad) */
+a:focus {
+    outline: 5px solid gold; /* Un borde brillante cuando el enlace tiene foco */
+}
+
+
+
+/* Estilo para los botones de completar */
+input[type="checkbox"] {
+    transform: scale(1.4);
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+label {
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+input[type="checkbox"]:checked + label {
+    text-decoration: line-through;
+    color: #999;
+}
+
+/* Estilo para los formularios */
+form {
+    margin: 0;
+}
