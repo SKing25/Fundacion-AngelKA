@@ -25,9 +25,10 @@ SECRET_KEY = 'django-insecure-sj-@tvne7t43u&auf3&&i6k8vdehr^#&r2cjcb0$*xds6u#23e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+PORT = int(os.environ.get('PORT', 8000))
+HOST = os.environ.get('HOST', '0.0.0.0')
 ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', 'fundacion-angelka.onrender.com']
-PORT = 8000
-HOST = '0.0.0.0'
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
