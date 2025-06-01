@@ -9,37 +9,23 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-import os
 from pathlib import Path
-from dotenv import load_dotenv
-import dj_database_url
+import os
+from django.contrib.messages import constants as messages
 
-# Cargar variables de entorno
-load_dotenv()
-
-# Configuración base del proyecto
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Clave secreta
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# Modo debug
-DEBUG = False
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-sj-@tvne7t43u&auf3&&i6k8vdehr^#&r2cjcb0$*xds6u#23e'
 
-# Hosts permitidos
-ALLOWED_HOSTS = ['.onrender.com', 'fundacionangelka.com']
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
 
-# Archivos estáticos
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Base de datos
-DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
-}
-
-# Resto de tu configuración...
-
+ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
@@ -90,6 +76,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'citas_psicologos.wsgi.application'
 
+# Database
+# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -138,7 +134,3 @@ AUTHENTICATION_BACKENDS = (
 )
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
-
-
-print(f"DATABASE_URL: {os.getenv('DATABASE_URL')}")
-print(f"SECRET_KEY: {os.getenv('DJANGO_SECRET_KEY')}")
